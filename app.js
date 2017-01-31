@@ -25,9 +25,12 @@ app.post('/send-push-msg', (req, res) => {
     TTL: 3600
   };
 
+  const {before, event} = req.body;
+  const data = event ? JSON.stringify(event) : JSON.stringify({});
+
   console.log(req.body);
 
-  webpush.sendNotification(req.body.subscription, req.body.data, options).then(() => {
+  webpush.sendNotification(req.body.subscription, data, options).then(() => {
     res.status(200).send({ success: true });
   }).catch((err) => {
     if (err.statusCode) {
