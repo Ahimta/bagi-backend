@@ -50,15 +50,15 @@ app.post('/send-push-msg', (req, res) => {
   } else {
     let notificationTime;
     switch (before) {
-      case 'month': notificationTime = event.date - (30 * 24 * 60 * 60 * 1000); break;
-      case 'week': notificationTime = event.date - (7 * 24 * 60 * 60 * 1000); break;
-      case 'day': notificationTime = event.date - (24 * 60 * 60 * 1000); break;
-      case 'hour': notificationTime = event.date - (60 * 60 * 1000); break;
-      case 'minute': notificationTime = event.date - (60 * 1000); break;
-      case 'second': notificationTime = event.date - (1000); break;
-      default: notificationTime = event.date;
+      case 'month': notificationTime = millisDifference - (30 * 24 * 60 * 60 * 1000); break;
+      case 'week': notificationTime = millisDifference - (7 * 24 * 60 * 60 * 1000); break;
+      case 'day': notificationTime = millisDifference - (24 * 60 * 60 * 1000); break;
+      case 'hour': notificationTime = millisDifference - (60 * 60 * 1000); break;
+      case 'minute': notificationTime = millisDifference - (60 * 1000); break;
+      case 'second': notificationTime = millisDifference - (1000); break;
+      default: notificationTime = millisDifference;
     }
-    const delay = Math.max(new Date(), new Date(notificationTime))
+    const delay = Math.max(notificationTime, 0)
 
     jobQueue.create('reminder', { before, event, subscription, title: new Date(event.date).toString() })
       .removeOnComplete(true)
