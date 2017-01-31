@@ -1,0 +1,33 @@
+{
+  "name": "bagi-backend",
+  "version": "1.0.0-beta0",
+  "description": "Bagi backend; mainly handling push notifications.",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "deploy": "heroku git:remote -a bagi-backend && git push heroku master",
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ahimta/bagi-backend.git"
+  },
+  "author": "Abdullah Alansari",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Ahimta/bagi-backend/issues"
+  },
+  "homepage": "https://github.com/Ahimta/bagi-backend#readme",
+  "dependencies": {
+    "body-parser": "^1.16.0",
+    "cors": "^2.8.1",
+    "express": "^4.14.1",
+    "web-push": "^3.2.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.14.1",
+    "nodemon": "^1.11.0"
+  }
+}
