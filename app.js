@@ -38,7 +38,7 @@ jobQueue.process('reminder', (job, done) => {
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/kue', kue.app);
+// app.use('/kue', kue.app);
 
 app.post('/send-push-msg', (req, res) => {
   const {before, event, subscription} = req.body;
