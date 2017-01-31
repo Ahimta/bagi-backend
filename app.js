@@ -24,21 +24,20 @@ jobQueue.process('reminder', (job, done) => {
     TTL: 3600
   };
 
-  const {before, event: eventString, subscription} = job.data;
-  const event = eventString ? JSON.stringify(eventString) : JSON.stringify({});
+  const {before, event, subscription} = job.data;
 
   console.log(job);
 
-  webpush.sendNotification(subscription, event, options).then(() => {
+  webpush.sendNotification(subscription, JSON.stringify(event), options).then(() => {
     done();
   }).catch((err) => {
     done(new Error(err));
   });
-})
+});
 
 app.use(cors());
 app.use(bodyParser.json());
-// app.use('/kue', kue.app);
+app.use('/kue', kue.app);
 
 app.post('/send-push-msg', (req, res) => {
   const {before, event, subscription} = req.body;
@@ -62,6 +61,7 @@ app.post('/send-push-msg', (req, res) => {
     const delay = Math.max(new Date(), new Date(notificationTime))
 
     jobQueue.create('reminder', { before, event, subscription, title: new Date(event.date).toString() })
+      .removeOnComplete(true)
       .delay(delay)
       .save(err => {
         if (err) {
