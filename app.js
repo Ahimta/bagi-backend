@@ -1,3 +1,5 @@
+require('newrelic');
+
 /* eslint-env node */
 'use strict';
 
@@ -5,6 +7,7 @@ const express = require('express');
 const kue = require('kue')
 const webpush = require('web-push');
 
+const basicAuth = require('basic-auth-connect');
 const bodyParser = require('body-parser');
 const cors = require('cors')
 
@@ -21,10 +24,10 @@ jobQueue.process('reminder', (job, done) => {
       publicKey: PUBLIC_KEY,
       privateKey: PRIVATE_KEY
     },
-    TTL: 3600
+    TTL: 360 * 24 * 3600
   };
 
-  const {before, event, subscription} = job.data;
+  const {event, subscription} = job.data;
 
   console.log(job);
 
@@ -37,11 +40,12 @@ jobQueue.process('reminder', (job, done) => {
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/kue', kue.app);
+app.use('/kue', basicAuth(process.env.KUE_USERNAME, process.env.KUE_PASSWORD), kue.app);
 
-app.post('/send-push-msg', (req, res) => {
+app.post('/api/v1/remind-me', (req, res) => {
   const {before, event, subscription} = req.body;
   const millisDifference = event.date - new Date().getTime();
+  const timeValue = Math.max(0, before.timeValue);
 
   console.log(req.body);
 
@@ -49,18 +53,18 @@ app.post('/send-push-msg', (req, res) => {
     res.send(400);
   } else {
     let notificationTime;
-    switch (before) {
-      case 'month': notificationTime = millisDifference - (30 * 24 * 60 * 60 * 1000); break;
-      case 'week': notificationTime = millisDifference - (7 * 24 * 60 * 60 * 1000); break;
-      case 'day': notificationTime = millisDifference - (24 * 60 * 60 * 1000); break;
-      case 'hour': notificationTime = millisDifference - (60 * 60 * 1000); break;
-      case 'minute': notificationTime = millisDifference - (60 * 1000); break;
-      case 'second': notificationTime = millisDifference - (1000); break;
+    switch (before.timeUnit) {
+      case 'month': notificationTime = millisDifference - timeValue * (30 * 24 * 60 * 60 * 1000); break;
+      case 'week': notificationTime = millisDifference - timeValue * (7 * 24 * 60 * 60 * 1000); break;
+      case 'day': notificationTime = millisDifference - timeValue * (24 * 60 * 60 * 1000); break;
+      case 'hour': notificationTime = millisDifference - timeValue * (60 * 60 * 1000); break;
+      case 'minute': notificationTime = millisDifference - timeValue * (60 * 1000); break;
+      case 'second': notificationTime = millisDifference - timeValue * (1000); break;
       default: notificationTime = millisDifference;
     }
-    const delay = Math.max(notificationTime, 0)
+    const delay = Math.max(notificationTime, 0);
 
-    jobQueue.create('reminder', { before, event, subscription, title: new Date(event.date).toString() })
+    jobQueue.create('reminder', { event, subscription, title: new Date(event.date).toString() })
       .removeOnComplete(true)
       .delay(delay)
       .save(err => {
